@@ -17,13 +17,17 @@ curl http://localhost:8080/api/v1/quotes/daily
 ### Example Response
 ```json
 {
-  "id": "5f493ad1d09ea6002c089829",
-  "content": "If you want to go fast, go alone. If you want to go far, go together.",
-  "author": "African Proverb",
-  "length": 58,
-  "tags": ["inspirational", "teamwork"]
+  "_id":"P1qpVayN1l",
+  "author":"Winston Churchill",
+  "content":"A lie gets halfway around the world before the truth has a chance to get its pants on.",
+  "tags":["History","Politics","Wisdom"],
+  "authorSlug":"winston-churchill",
+  "length":86,
+  "dateAdded":"2022-03-12",
+  "dateModified":"2023-04-14"
 }
 ```
+
 ## Installation
 
 To run the DailyQuote API locally, you need to have Go installed on your machine. Then, follow these steps:
