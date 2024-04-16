@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 )
@@ -13,21 +14,35 @@ var (
 	QUOTE_API_ROUTE = "/random"
 )
 
-type Quote struct {
+type CodeQuote struct {
+	QuoteResponse QuoteResponse `json:"quote"`
+	Shift         int           `json:"shift"`
+}
+
+type QuoteResponse struct {
 	ID      string `json:"_id"`
 	Author  string `json:"author"`
 	Content string `json:"content"`
 	Length  int    `json:"length"`
 }
 
-var DefaultQuote = Quote{
-	ID:      "P1qpVayN1l",
-	Author:  "Winston Churchill",
-	Content: "A lie gets halfway around the world before the truth has a chance to get its pants on.",
-	Length:  86,
+type ServeQuote struct {
+	Author  string
+	Content string
+	Shift   int
 }
 
-func GetQuote() Quote {
+var DefaultQuote = CodeQuote{
+	QuoteResponse: QuoteResponse{
+		ID:      "P1qpVayN1l",
+		Author:  "Winston Churchill",
+		Content: "A lie gets halfway around the world before the truth has a chance to get its pants on.",
+		Length:  86,
+	},
+	Shift: 3,
+}
+
+func GetQuote() CodeQuote {
 	resp, err := http.Get(QUOTE_API_URL + QUOTE_API_ROUTE)
 	if err != nil {
 		log.Printf("Failed to GET %s. Using default quote\n", QUOTE_API_ROUTE)
@@ -41,13 +56,18 @@ func GetQuote() Quote {
 		return DefaultQuote
 	}
 
-	var quote Quote
+	var quote QuoteResponse
 	if err := json.Unmarshal(body, &quote); err != nil {
 		log.Printf("Unexpected result from GET /random\nbody: %s\n", string(body))
 		return DefaultQuote
 	}
 
-	return quote
+	codeQuote := CodeQuote{
+		QuoteResponse: quote,
+		Shift:         rand.Intn(25) + 1,
+	}
+
+	return codeQuote
 }
 
 func LoadDailyQuote() error {

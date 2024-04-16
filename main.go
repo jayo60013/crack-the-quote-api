@@ -7,20 +7,23 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 var (
 	PORT_NUMBER    = ":9100"
 	dailyQuoteFile = "daily_quote.json"
-	dailyQuote     Quote
+	dailyQuote     CodeQuote
 	quoteMutex     sync.Mutex
 	wg             sync.WaitGroup
 )
 
 func main() {
 	gin.SetMode(gin.ReleaseMode)
+
 	r := gin.Default()
+	r.Use(cors.Default())
 
 	if err := LoadDailyQuote(); err != nil {
 		log.Printf("Failed to load daily quote: %v\n", err)
@@ -65,7 +68,13 @@ func serveDailyQuote(c *gin.Context) {
 	quoteMutex.Lock()
 	defer quoteMutex.Unlock()
 
-	c.JSON(http.StatusOK, dailyQuote)
+	response := ServeQuote{
+		Author:  dailyQuote.QuoteResponse.Author,
+		Content: dailyQuote.QuoteResponse.Content,
+		Shift:   dailyQuote.Shift,
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 func updateDailyQuote() {
