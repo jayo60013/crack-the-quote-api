@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"os"
 	"sync"
-	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -14,7 +13,7 @@ import (
 var (
 	PORT_NUMBER    = ":9100"
 	dailyQuoteFile = "daily_quote.json"
-	dailyQuote     CodeQuote
+	dailyQuote     ServeQuote
 	quoteMutex     sync.Mutex
 	wg             sync.WaitGroup
 )
@@ -29,9 +28,9 @@ func main() {
 		log.Printf("Failed to load daily quote: %v\n", err)
 	}
 
-	v1 := r.Group("/api/v1/quotes")
+	quoteController := r.Group("/api/v1/quotes")
 	{
-		v1.GET("/daily", serveDailyQuote)
+		quoteController.GET("/daily", serveDailyQuote)
 	}
 	go func() {
 		if err := r.Run(PORT_NUMBER); err != nil {
@@ -46,35 +45,31 @@ func main() {
 }
 
 func updateQuoteRoutine() {
-	defer wg.Done()
-
-	now := time.Now()
-	nextMidnight := now.Add(time.Duration(24-now.Hour()) * time.Hour)
-	timeUntilMidnight := nextMidnight.Sub(now)
-
-	log.Printf("Waiting %f hours to update daily quote", timeUntilMidnight.Hours())
-	time.Sleep(timeUntilMidnight)
-
-	ticker := time.NewTicker(10 * time.Second)
-	defer ticker.Stop()
-
-	for range ticker.C {
-		log.Printf("Updating daily quote\n")
-		updateDailyQuote()
-	}
+	// defer wg.Done()
+	//
+	// now := time.Now()
+	// nextMidnight := now.Add(time.Duration(24-now.Hour()) * time.Hour)
+	// timeUntilMidnight := nextMidnight.Sub(now)
+	//
+	// log.Printf("Waiting %f hours to update daily quote", timeUntilMidnight.Hours())
+	// time.Sleep(timeUntilMidnight)
+	//
+	// ticker := time.NewTicker(10 * time.Second)
+	// defer ticker.Stop()
+	//
+	// for range ticker.C {
+	// 	log.Printf("Updating daily quote\n")
+	// 	updateDailyQuote()
+	// }
+	//
+	updateDailyQuote()
 }
 
 func serveDailyQuote(c *gin.Context) {
 	quoteMutex.Lock()
 	defer quoteMutex.Unlock()
 
-	response := ServeQuote{
-		Author:  dailyQuote.QuoteResponse.Author,
-		Content: dailyQuote.QuoteResponse.Content,
-		Shift:   dailyQuote.Shift,
-	}
-
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, dailyQuote)
 }
 
 func updateDailyQuote() {

@@ -7,19 +7,18 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"regexp"
+	"strings"
+	"time"
 )
 
 var (
 	QUOTE_API_URL   = "https://api.quotable.io"
 	QUOTE_API_ROUTE = "/random"
+	START_DATE      = time.Date(2024, 4, 1, 0, 0, 0, 0, time.UTC)
 )
 
-type CodeQuote struct {
-	QuoteResponse QuoteResponse `json:"quote"`
-	Shift         int           `json:"shift"`
-}
-
-type QuoteResponse struct {
+type quoteResponse struct {
 	ID      string `json:"_id"`
 	Author  string `json:"author"`
 	Content string `json:"content"`
@@ -27,47 +26,45 @@ type QuoteResponse struct {
 }
 
 type ServeQuote struct {
-	Author  string
-	Content string
-	Shift   int
+	Author      string
+	Quote       string
+	CipherQuote string
+	DayNumber   int
 }
 
-var DefaultQuote = CodeQuote{
-	QuoteResponse: QuoteResponse{
-		ID:      "P1qpVayN1l",
-		Author:  "Winston Churchill",
-		Content: "A lie gets halfway around the world before the truth has a chance to get its pants on.",
-		Length:  86,
-	},
-	Shift: 3,
-}
+type CipherMapping map[string]string
 
-func GetQuote() CodeQuote {
+func GetQuote() ServeQuote {
 	resp, err := http.Get(QUOTE_API_URL + QUOTE_API_ROUTE)
 	if err != nil {
-		log.Printf("Failed to GET %s. Using default quote\n", QUOTE_API_ROUTE)
-		return DefaultQuote
+		log.Printf("Failed to GET %s. Exiting\n", QUOTE_API_ROUTE)
+		os.Exit(1)
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("Failed to read GET /random response\n")
-		return DefaultQuote
+		log.Printf("Failed to read GET %s response. Exiting\n", QUOTE_API_ROUTE)
+		os.Exit(1)
 	}
 
-	var quote QuoteResponse
+	var quote quoteResponse
 	if err := json.Unmarshal(body, &quote); err != nil {
-		log.Printf("Unexpected result from GET /random\nbody: %s\n", string(body))
-		return DefaultQuote
+		log.Printf("Unexpected result from GET %s\nbody: %s\nExiting\n", QUOTE_API_ROUTE, string(body))
+		os.Exit(1)
 	}
 
-	codeQuote := CodeQuote{
-		QuoteResponse: quote,
-		Shift:         rand.Intn(25) + 1,
+	quoteContent := strings.ToLower(quote.Content)
+	dayNumber := time.Since(START_DATE).Hours() / 24
+
+	serveQuote := ServeQuote{
+		Author:      quote.Author,
+		Quote:       quoteContent,
+		CipherQuote: EncodeQuote(quoteContent, CreateCipherMap()),
+		DayNumber:   int(dayNumber) + 1,
 	}
 
-	return codeQuote
+	return serveQuote
 }
 
 func LoadDailyQuote() error {
@@ -94,4 +91,31 @@ func SaveDailyQuote() error {
 	}
 
 	return nil
+}
+
+func CreateCipherMap() CipherMapping {
+	alphabet := "abcdefghijklmnopqrstuvwxyz"
+	perm := rand.Perm(len(alphabet))
+
+	mappings := make(map[string]string)
+
+	for i, char := range alphabet {
+		mappings[string(char)] = string(alphabet[perm[i]])
+	}
+
+	return mappings
+}
+
+func EncodeQuote(quote string, cipher CipherMapping) string {
+	var encodedQuote strings.Builder
+	alphabetRegex := regexp.MustCompile(`[a-z]`)
+
+	for _, char := range quote {
+		if alphabetRegex.MatchString(string(char)) {
+			encodedQuote.WriteString(cipher[string(char)])
+		} else {
+			encodedQuote.WriteRune(char)
+		}
+	}
+	return encodedQuote.String()
 }
