@@ -17,14 +17,10 @@ curl http://localhost:8080/api/v1/quotes/daily
 ### Example Response
 ```json
 {
-  "_id":"P1qpVayN1l",
-  "author":"Winston Churchill",
-  "content":"A lie gets halfway around the world before the truth has a chance to get its pants on.",
-  "tags":["History","Politics","Wisdom"],
-  "authorSlug":"winston-churchill",
-  "length":86,
-  "dateAdded":"2022-03-12",
-  "dateModified":"2023-04-14"
+  "Author": "Michael Korda",
+  "Quote": "to succeed, we must first believe that we can.",
+  "CipherQuote": "xs aljjrrz, ur hlax bfdax yrifrwr xcpx ur jpg.",
+  "DayNumber": 26
 }
 ```
 
@@ -34,11 +30,11 @@ To run the DailyQuote API locally, you need to have Go installed on your machine
 
 1. Clone this repository:
 ```bash
-git clone https://github.com/your-username/dailyquote-api.git
+git clone https://github.com/jayo60013/code_quotes_backend.git
 ```
 2. Navigate to the project directory:
 ```bash
-cd dailyquote-api
+cd code_quotes_backend
 ```
 3. Install dependencies:
 ```bash
