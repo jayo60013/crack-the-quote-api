@@ -26,10 +26,11 @@ type quoteResponse struct {
 }
 
 type ServeQuote struct {
-	Author      string
-	Quote       string
-	CipherQuote string
-	DayNumber   int
+	Author        string
+	Quote         string
+	CipherQuote   string
+	DayNumber     int
+	CipherMapping CipherMapping
 }
 
 type CipherMapping map[string]string
@@ -56,12 +57,14 @@ func GetQuote() ServeQuote {
 
 	quoteContent := strings.ToLower(quote.Content)
 	dayNumber := time.Since(START_DATE).Hours() / 24
+	cipherMapping := createCipherMap()
 
 	serveQuote := ServeQuote{
-		Author:      quote.Author,
-		Quote:       quoteContent,
-		CipherQuote: EncodeQuote(quoteContent, CreateCipherMap()),
-		DayNumber:   int(dayNumber) + 1,
+		Author:        quote.Author,
+		Quote:         quoteContent,
+		CipherQuote:   encodeQuote(quoteContent, cipherMapping),
+		DayNumber:     int(dayNumber) + 1,
+		CipherMapping: reverseCipherMapping(cipherMapping),
 	}
 
 	return serveQuote
@@ -93,7 +96,7 @@ func SaveDailyQuote() error {
 	return nil
 }
 
-func CreateCipherMap() CipherMapping {
+func createCipherMap() CipherMapping {
 	alphabet := "abcdefghijklmnopqrstuvwxyz"
 	perm := rand.Perm(len(alphabet))
 
@@ -106,7 +109,7 @@ func CreateCipherMap() CipherMapping {
 	return mappings
 }
 
-func EncodeQuote(quote string, cipher CipherMapping) string {
+func encodeQuote(quote string, cipher CipherMapping) string {
 	var encodedQuote strings.Builder
 	alphabetRegex := regexp.MustCompile(`[a-z]`)
 
@@ -118,4 +121,12 @@ func EncodeQuote(quote string, cipher CipherMapping) string {
 		}
 	}
 	return encodedQuote.String()
+}
+
+func reverseCipherMapping(cipherMap CipherMapping) CipherMapping {
+	newMap := make(map[string]string)
+	for key, value := range cipherMap {
+		newMap[value] = key
+	}
+	return newMap
 }
