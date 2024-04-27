@@ -26,11 +26,12 @@ type quoteResponse struct {
 }
 
 type ServeQuote struct {
+	CipherMapping CipherMapping
 	Author        string
 	Quote         string
 	CipherQuote   string
+	DateString    string
 	DayNumber     int
-	CipherMapping CipherMapping
 }
 
 type CipherMapping map[string]string
@@ -60,10 +61,12 @@ func GetQuote() ServeQuote {
 	cipherMapping := createCipherMap()
 
 	serveQuote := ServeQuote{
-		Author:        quote.Author,
-		Quote:         quoteContent,
-		CipherQuote:   encodeQuote(quoteContent, cipherMapping),
-		DayNumber:     int(dayNumber) + 1,
+		Author:      quote.Author,
+		Quote:       quoteContent,
+		CipherQuote: encodeQuote(quoteContent, cipherMapping),
+		DayNumber:   int(dayNumber) + 1,
+		// No clue why it's formatted like this - it works
+		DateString:    time.Now().Format("January 2nd, 2006"),
 		CipherMapping: reverseCipherMapping(cipherMapping),
 	}
 
