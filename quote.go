@@ -61,12 +61,11 @@ func GetQuote() ServeQuote {
 	cipherMapping := createCipherMap()
 
 	serveQuote := ServeQuote{
-		Author:      quote.Author,
-		Quote:       quoteContent,
-		CipherQuote: encodeQuote(quoteContent, cipherMapping),
-		DayNumber:   int(dayNumber) + 1,
-		// No clue why it's formatted like this - it works
-		DateString:    time.Now().Format("January 2nd, 2006"),
+		Author:        quote.Author,
+		Quote:         quoteContent,
+		CipherQuote:   encodeQuote(quoteContent, cipherMapping),
+		DayNumber:     int(dayNumber) + 1,
+		DateString:    FormatDateString(),
 		CipherMapping: reverseCipherMapping(cipherMapping),
 	}
 
