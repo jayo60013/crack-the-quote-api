@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"math/rand"
@@ -13,9 +14,11 @@ import (
 )
 
 var (
-	QUOTE_API_URL   = "https://api.quotable.io"
-	QUOTE_API_ROUTE = "/random"
-	START_DATE      = time.Date(2024, 4, 1, 0, 0, 0, 0, time.UTC)
+	QUOTE_API_URL    = "api.quotable.io"
+	QUOTE_API_ROUTE  = "random"
+	QUOTE_MIN_LENGTH = 150
+	QUOTE_MAX_LENGTH = 500
+	START_DATE       = time.Date(2024, 4, 1, 0, 0, 0, 0, time.UTC)
 )
 
 type quoteResponse struct {
@@ -37,7 +40,8 @@ type ServeQuote struct {
 type CipherMapping map[string]string
 
 func GetQuote() ServeQuote {
-	resp, err := http.Get(QUOTE_API_URL + QUOTE_API_ROUTE)
+	uri := fmt.Sprintf("https://%s/%s?minLength=%d&maxLength=%d", QUOTE_API_URL, QUOTE_API_ROUTE, QUOTE_MIN_LENGTH, QUOTE_MAX_LENGTH)
+	resp, err := http.Get(uri)
 	if err != nil {
 		log.Printf("Failed to GET %s. Exiting\n", QUOTE_API_ROUTE)
 		os.Exit(1)

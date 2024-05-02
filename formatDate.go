@@ -8,7 +8,7 @@ import (
 func FormatDateString() string {
 	now := time.Now()
 	day := now.Day()
-	dateFormat := fmt.Sprintf("January 2%s, 2020", getDaySuffix(day))
+	dateFormat := fmt.Sprintf("January 2%s, 2006", getDaySuffix(day))
 
 	return time.Now().Format(dateFormat)
 }
