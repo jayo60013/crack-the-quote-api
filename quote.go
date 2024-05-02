@@ -100,15 +100,20 @@ func SaveDailyQuote() error {
 
 func createCipherMap() CipherMapping {
 	alphabet := "abcdefghijklmnopqrstuvwxyz"
-	perm := rand.Perm(len(alphabet))
+	perm := []rune(alphabet)
 
-	mappings := make(map[string]string)
-
-	for i, char := range alphabet {
-		mappings[string(char)] = string(alphabet[perm[i]])
+	// Shuffle using Fisher-Yates
+	for i := len(alphabet) - 1; i > 0; i-- {
+		j := rand.Intn(i + 1)
+		perm[i], perm[j] = perm[j], perm[i]
 	}
 
-	return mappings
+	mapping := make(CipherMapping)
+	for i, char := range alphabet {
+		mapping[string(char)] = string(perm[i])
+	}
+
+	return mapping
 }
 
 func encodeQuote(quote string, cipher CipherMapping) string {
