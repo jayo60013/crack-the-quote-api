@@ -14,12 +14,12 @@ func FormatDateString() string {
 }
 
 func getDaySuffix(day int) string {
-	switch day % 10 {
-	case 1:
+	switch day {
+	case 1, 21, 31:
 		return "st"
-	case 2:
+	case 2, 22:
 		return "nd"
-	case 3:
+	case 3, 23:
 		return "rd"
 	default:
 		return "th"

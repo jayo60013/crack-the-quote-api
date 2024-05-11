@@ -16,8 +16,8 @@ import (
 var (
 	QUOTE_API_URL    = "api.quotable.io"
 	QUOTE_API_ROUTE  = "random"
-	QUOTE_MIN_LENGTH = 150
-	QUOTE_MAX_LENGTH = 500
+	QUOTE_MIN_LENGTH = 50
+	QUOTE_MAX_LENGTH = 150
 	START_DATE       = time.Date(2024, 4, 1, 0, 0, 0, 0, time.UTC)
 )
 
