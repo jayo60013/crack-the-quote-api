@@ -51,7 +51,7 @@ func GetQuote() ServeQuote {
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Printf("Failed to read GET %s response. Exiting\n", QUOTE_API_ROUTE)
-		os.Exit(1)
+		log.Println(err)
 	}
 
 	var quote quoteResponse
