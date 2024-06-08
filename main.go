@@ -76,7 +76,12 @@ func updateDailyQuote() {
 	quoteMutex.Lock()
 	defer quoteMutex.Unlock()
 
-	dailyQuote = GetQuote()
+	newQuote := GetQuote()
+	if newQuote != nil {
+		dailyQuote = GetQuote()
+	} else {
+		return
+	}
 	if err := SaveDailyQuote(); err != nil {
 		log.Printf("Failed to save daily quote: %v\n", err)
 	}

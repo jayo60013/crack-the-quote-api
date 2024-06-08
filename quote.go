@@ -45,19 +45,21 @@ func GetQuote() ServeQuote {
 	if err != nil {
 		log.Printf("Failed to GET %s. Exiting\n", QUOTE_API_ROUTE)
 		log.Println(err)
-		os.Exit(1)
+		return nil
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Printf("Failed to read GET %s response. Exiting\n", QUOTE_API_ROUTE)
+		log.Println(err)
 		os.Exit(1)
 	}
 
 	var quote quoteResponse
 	if err := json.Unmarshal(body, &quote); err != nil {
 		log.Printf("Unexpected result from GET %s\nbody: %s\nExiting\n", QUOTE_API_ROUTE, string(body))
+		log.Println(err)
 		os.Exit(1)
 	}
 
