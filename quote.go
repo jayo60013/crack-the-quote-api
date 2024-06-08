@@ -45,7 +45,14 @@ func GetQuote() ServeQuote {
 	if err != nil {
 		log.Printf("Failed to GET %s. Exiting\n", QUOTE_API_ROUTE)
 		log.Println(err)
-		return nil
+		return ServeQuote{
+			CipherMapping: make(map[string]string),
+			Author:        "ERROR",
+			Quote:         "ERROR",
+			CipherQuote:   "ERROR",
+			DateString:    "ERROR",
+			DayNumber:     -1,
+		}
 	}
 	defer resp.Body.Close()
 
