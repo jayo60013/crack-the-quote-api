@@ -1,7 +1,9 @@
 # The build stage
 FROM golang:1.22-bookworm as builder
 
+RUN apt-get update
 RUN apt-get install -y ca-certificates
+RUN update-ca-certificates
 
 WORKDIR /app
 COPY . .
