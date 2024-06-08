@@ -27,4 +27,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: jayo60013/crack-the-quote-backend:latest
+          tags: jayo60013/crack-the-quote-api:latest
