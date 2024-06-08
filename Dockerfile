@@ -1,5 +1,5 @@
 FROM golang:1.22.4
-COPY /yourcode /build
+COPY . /build
 RUN \
   cd /build && \
   go build -o crack-the-quote-api *.go && \
