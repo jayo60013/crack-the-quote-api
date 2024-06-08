@@ -3,13 +3,13 @@ FROM golang:1.22-bookworm as builder
 
 RUN apt-get update
 
-WORKDIR /app
+WORKDIR /build_app
 COPY . .
-RUN GOPROXY=https://proxy.golang.org CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o crack-the-quote-api ./main.go ./quote.go ./formatDate.go
+RUN go build -o crack-the-quote-api ./main.go ./quote.go ./formatDate.go
 
 # The run stage
 FROM debian:bookworm
-WORKDIR /app
-COPY --from=builder /app/crack-the-quote-api .
+WORKDIR /run_app
+COPY --from=builder /build_app/crack-the-quote-api .
 EXPOSE 9100
 CMD ["./crack-the-quote-api"]
