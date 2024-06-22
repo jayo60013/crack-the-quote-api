@@ -5,9 +5,11 @@ import (
 	"net/http"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/jasonlvhit/gocron"
 )
 
 var (
@@ -39,30 +41,10 @@ func main() {
 		}
 	}()
 
-	wg.Add(1)
-	go updateQuoteRoutine()
-	wg.Wait()
-}
+	gocron.Every(1).Day().At("00:00").Do(updateDailyQuote)
+	<-gocron.Start()
 
-func updateQuoteRoutine() {
-	// defer wg.Done()
-	//
-	// now := time.Now()
-	// nextMidnight := now.Add(time.Duration(24-now.Hour()) * time.Hour)
-	// timeUntilMidnight := nextMidnight.Sub(now)
-	//
-	// log.Printf("Waiting %f hours to update daily quote", timeUntilMidnight.Hours())
-	// time.Sleep(timeUntilMidnight)
-	//
-	// ticker := time.NewTicker(10 * time.Second)
-	// defer ticker.Stop()
-	//
-	// for range ticker.C {
-	// 	log.Printf("Updating daily quote\n")
-	// 	updateDailyQuote()
-	// }
-	//
-	updateDailyQuote()
+	select {}
 }
 
 func serveDailyQuote(c *gin.Context) {
@@ -76,6 +58,7 @@ func updateDailyQuote() {
 	quoteMutex.Lock()
 	defer quoteMutex.Unlock()
 
+	log.Printf("Fetching new quote at %v\n", time.Now())
 	dailyQuote = GetQuote()
 	if err := SaveDailyQuote(); err != nil {
 		log.Printf("Failed to save daily quote: %v\n", err)
