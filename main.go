@@ -17,7 +17,6 @@ var (
 	dailyQuoteFile = "daily_quote.json"
 	dailyQuote     ServeQuote
 	quoteMutex     sync.Mutex
-	wg             sync.WaitGroup
 )
 
 func main() {
@@ -40,6 +39,8 @@ func main() {
 			os.Exit(1)
 		}
 	}()
+
+	updateDailyQuote()
 
 	gocron.Every(1).Day().At("00:00").Do(updateDailyQuote)
 	<-gocron.Start()
