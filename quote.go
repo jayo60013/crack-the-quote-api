@@ -28,7 +28,7 @@ type quoteResponse struct {
 	Length  int    `json:"length"`
 }
 
-type ServeQuote struct {
+type DailyQuote struct {
 	CipherMapping CipherMapping
 	Author        string
 	Quote         string
@@ -39,13 +39,14 @@ type ServeQuote struct {
 
 type CipherMapping map[string]string
 
-func GetQuote() ServeQuote {
+func GetQuote() DailyQuote {
 	uri := fmt.Sprintf("https://%s/%s?minLength=%d&maxLength=%d", QUOTE_API_URL, QUOTE_API_ROUTE, QUOTE_MIN_LENGTH, QUOTE_MAX_LENGTH)
 	resp, err := http.Get(uri)
+	// TODO: Add retry mechanism
 	if err != nil {
 		log.Printf("Failed to GET %s. Exiting\n", QUOTE_API_ROUTE)
 		log.Println(err)
-		return ServeQuote{
+		return DailyQuote{
 			CipherMapping: make(map[string]string),
 			Author:        "ERROR",
 			Quote:         "ERROR",
@@ -72,9 +73,9 @@ func GetQuote() ServeQuote {
 
 	quoteContent := strings.ToLower(quote.Content)
 	dayNumber := time.Since(START_DATE).Hours() / 24
-	cipherMapping := createCipherMap()
+	cipherMapping := createCipherMap(quoteContent)
 
-	serveQuote := ServeQuote{
+	serveQuote := DailyQuote{
 		Author:        quote.Author,
 		Quote:         quoteContent,
 		CipherQuote:   encodeQuote(quoteContent, cipherMapping),
@@ -86,48 +87,39 @@ func GetQuote() ServeQuote {
 	return serveQuote
 }
 
-func LoadDailyQuote() error {
-	fileData, err := os.ReadFile(dailyQuoteFile)
-	if err != nil {
-		return err
-	}
-
-	if err := json.Unmarshal(fileData, &dailyQuote); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func SaveDailyQuote() error {
-	quoteData, err := json.Marshal(dailyQuote)
-	if err != nil {
-		return err
-	}
-
-	if err := os.WriteFile(dailyQuoteFile, quoteData, 0644); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func createCipherMap() CipherMapping {
+func createCipherMap(quote string) CipherMapping {
 	alphabet := "abcdefghijklmnopqrstuvwxyz"
-	perm := []rune(alphabet)
+	cipherMap := make(CipherMapping)
+	letterRegex := "^[a-z]$"
+	re := regexp.MustCompile(letterRegex)
 
-	// Shuffle using Fisher-Yates
-	for i := len(alphabet) - 1; i > 0; i-- {
-		j := rand.Intn(i + 1)
-		perm[i], perm[j] = perm[j], perm[i]
+	for _, r := range quote {
+
+		char := string(r)
+
+		if !re.MatchString(char) {
+			continue
+		}
+
+		if _, exists := cipherMap[char]; exists {
+			continue
+		}
+
+		rndIdx := rand.Intn(len(alphabet))
+		rndChar := string(alphabet[rndIdx])
+
+		cipherMap[char] = rndChar
+
+		alphabet = removeLetterFromString(alphabet, rndIdx)
 	}
 
-	mapping := make(CipherMapping)
-	for i, char := range alphabet {
-		mapping[string(char)] = string(perm[i])
-	}
+	return cipherMap
+}
 
-	return mapping
+func removeLetterFromString(str string, idx int) string {
+	runes := []rune(str)
+	runes = append(runes[:idx], runes[idx+1:]...)
+	return string(runes)
 }
 
 func encodeQuote(quote string, cipher CipherMapping) string {
