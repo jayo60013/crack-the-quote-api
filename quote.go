@@ -44,10 +44,7 @@ func GetQuote() DailyQuote {
 	tableName := os.Getenv("QUOTES_TABLE_NAME")
 	connStr := fmt.Sprintf(
 		"user=%s dbname=%s password=%s host=%s sslmode=disable",
-		dbUser,
-		dbName,
-		dbPassword,
-		dbHost,
+		dbUser, dbName, dbPassword, dbHost,
 	)
 
 	db, err := sql.Open("postgres", connStr)
