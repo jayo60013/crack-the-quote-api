@@ -51,6 +51,9 @@ func GetQuote() DailyQuote {
 	)
 
 	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		log.Fatalf("Could not open connection to %s: %v\n", dbHost, err)
+	}
 	defer db.Close()
 
 	query := fmt.Sprintf("SELECT id, quote, author FROM %s ORDER BY RANDOM() LIMIT 1", tableName)
