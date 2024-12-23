@@ -18,7 +18,7 @@ var (
 )
 
 // Struct to serve to the frontend
-type ServeQuote struct {
+type DailyQuote struct {
 	CipherMapping CipherMapping
 	Author        string
 	Quote         string
@@ -36,7 +36,7 @@ type Quote struct {
 
 type CipherMapping map[string]string
 
-func GetQuote() ServeQuote {
+func GetQuote() DailyQuote {
 	dbHost := os.Getenv("POSTGRES_HOST")
 	dbName := os.Getenv("POSTGRES_DB")
 	dbUser := os.Getenv("POSTGRES_USER")
@@ -51,23 +51,6 @@ func GetQuote() ServeQuote {
 	)
 
 	db, err := sql.Open("postgres", connStr)
-func GetQuote() DailyQuote {
-	uri := fmt.Sprintf("https://%s/%s?minLength=%d&maxLength=%d", QUOTE_API_URL, QUOTE_API_ROUTE, QUOTE_MIN_LENGTH, QUOTE_MAX_LENGTH)
-	resp, err := http.Get(uri)
-	// TODO: Add retry mechanism
-	if err != nil {
-		log.Printf("Failed to GET %s. Exiting\n", QUOTE_API_ROUTE)
-		log.Println(err)
-		return DailyQuote{
-			CipherMapping: make(map[string]string),
-			Author:        "ERROR",
-			Quote:         "ERROR",
-			CipherQuote:   "ERROR",
-			DateString:    "ERROR",
-			DayNumber:     -1,
-		}
-		log.Fatal(err)
-	}
 	defer db.Close()
 
 	query := fmt.Sprintf("SELECT id, quote, author FROM %s ORDER BY RANDOM() LIMIT 1", tableName)
@@ -101,7 +84,6 @@ func GetQuote() DailyQuote {
 }
 
 func createCipherMap(quote string) CipherMapping {
-func createCipherMap() CipherMapping {
 	alphabet := "abcdefghijklmnopqrstuvwxyz"
 	cipherMap := make(CipherMapping)
 	letterRegex := "^[a-z]$"
