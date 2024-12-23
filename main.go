@@ -155,7 +155,6 @@ func checkQuote(c *gin.Context) {
 
 	answer := "correct"
 	for k, v := range dailyQuote.CipherMapping {
-		fmt.Printf("Comparing %s to %s\n", payload.CipherMapping[k], v)
 		if payload.CipherMapping[k] != v {
 			answer = "incorrect"
 			break
