@@ -27,8 +27,6 @@ func main() {
 	r := gin.Default()
 	r.Use(cors.Default())
 
-	updateDailyQuote()
-
 	quoteController := r.Group("/api/v1/quotes")
 	{
 		quoteController.GET("/daily", serveDailyQuote)

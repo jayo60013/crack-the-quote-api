@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func FormatDateString() string {
+func FormatTodaysDate() string {
 	now := time.Now()
 	day := now.Day()
 	dateFormat := fmt.Sprintf("January 2%s, 2006", getDaySuffix(day))

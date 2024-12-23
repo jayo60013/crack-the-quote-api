@@ -70,7 +70,7 @@ func GetQuote() DailyQuote {
 		Quote:         quoteContent,
 		CipherQuote:   encodeQuote(quoteContent, cipherMapping),
 		DayNumber:     int(dayNumber) + 1,
-		DateString:    FormatDateString(),
+		DateString:    FormatTodaysDate(),
 		CipherMapping: reverseCipherMapping(cipherMapping),
 	}
 
