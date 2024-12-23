@@ -1,34 +1,24 @@
 package main
 
 import (
-	"encoding/json"
+	"database/sql"
 	"fmt"
-	"io"
 	"log"
 	"math/rand"
-	"net/http"
 	"os"
 	"regexp"
 	"strings"
 	"time"
+
+	_ "github.com/lib/pq"
 )
 
 var (
-	QUOTE_API_URL    = "api.quotable.io"
-	QUOTE_API_ROUTE  = "random"
-	QUOTE_MIN_LENGTH = 75
-	QUOTE_MAX_LENGTH = 150
-	START_DATE       = time.Date(2024, 6, 22, 0, 0, 0, 0, time.UTC)
+	START_DATE = time.Date(2024, 12, 23, 0, 0, 0, 0, time.UTC)
 )
 
-type quoteResponse struct {
-	ID      string `json:"_id"`
-	Author  string `json:"author"`
-	Content string `json:"content"`
-	Length  int    `json:"length"`
-}
-
-type DailyQuote struct {
+// Struct to serve to the frontend
+type ServeQuote struct {
 	CipherMapping CipherMapping
 	Author        string
 	Quote         string
@@ -37,8 +27,30 @@ type DailyQuote struct {
 	DayNumber     int
 }
 
+// Struct we get back from the DB
+type Quote struct {
+	ID     int
+	Quote  string
+	Author string
+}
+
 type CipherMapping map[string]string
 
+func GetQuote() ServeQuote {
+	dbHost := os.Getenv("POSTGRES_HOST")
+	dbName := os.Getenv("POSTGRES_DB")
+	dbUser := os.Getenv("POSTGRES_USER")
+	dbPassword := os.Getenv("POSTGRES_PASSWORD")
+	tableName := os.Getenv("QUOTES_TABLE_NAME")
+	connStr := fmt.Sprintf(
+		"user=%s dbname=%s password=%s host=%s sslmode=disable",
+		dbUser,
+		dbName,
+		dbPassword,
+		dbHost,
+	)
+
+	db, err := sql.Open("postgres", connStr)
 func GetQuote() DailyQuote {
 	uri := fmt.Sprintf("https://%s/%s?minLength=%d&maxLength=%d", QUOTE_API_URL, QUOTE_API_ROUTE, QUOTE_MIN_LENGTH, QUOTE_MAX_LENGTH)
 	resp, err := http.Get(uri)
@@ -54,24 +66,19 @@ func GetQuote() DailyQuote {
 			DateString:    "ERROR",
 			DayNumber:     -1,
 		}
+		log.Fatal(err)
 	}
-	defer resp.Body.Close()
+	defer db.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	query := fmt.Sprintf("SELECT id, quote, author FROM %s ORDER BY RANDOM() LIMIT 1", tableName)
+
+	var quote Quote
+	err = db.QueryRow(query).Scan(&quote.ID, &quote.Quote, &quote.Author)
 	if err != nil {
-		log.Printf("Failed to read GET %s response. Exiting\n", QUOTE_API_ROUTE)
-		log.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 
-	var quote quoteResponse
-	if err := json.Unmarshal(body, &quote); err != nil {
-		log.Printf("Unexpected result from GET %s\nbody: %s\nExiting\n", QUOTE_API_ROUTE, string(body))
-		log.Println(err)
-		os.Exit(1)
-	}
-
-	quoteContent := strings.ToLower(quote.Content)
+	quoteContent := strings.ToLower(quote.Quote)
 	dayNumber := time.Since(START_DATE).Hours() / 24
 	cipherMapping := createCipherMap(quoteContent)
 
@@ -84,10 +91,17 @@ func GetQuote() DailyQuote {
 		CipherMapping: reverseCipherMapping(cipherMapping),
 	}
 
+	log.Printf(
+		"Fetched quote: (id: %d, %s, %s) from %s at %v\n",
+		quote.ID, quote.Quote, quote.Author,
+		dbName, time.Now(),
+	)
+
 	return serveQuote
 }
 
 func createCipherMap(quote string) CipherMapping {
+func createCipherMap() CipherMapping {
 	alphabet := "abcdefghijklmnopqrstuvwxyz"
 	cipherMap := make(CipherMapping)
 	letterRegex := "^[a-z]$"
