@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	. "crackthequoteapi/models"
+	"crackthequoteapi/service"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jasonlvhit/gocron"
@@ -15,7 +17,7 @@ import (
 
 var (
 	PORT_NUMBER = ":9100"
-	dailyQuote  DailyQuote
+	dailyQuote  QuoteEntity
 	quoteMutex  sync.Mutex
 )
 
@@ -25,12 +27,12 @@ func main() {
 	r := gin.Default()
 	r.Use(cors.Default())
 
-	quoteController := r.Group("/api/v1/quotes")
+	quoteController := r.Group("/daily")
 	{
-		quoteController.GET("/daily", serveDailyQuote)
-		quoteController.POST("/daily/checkLetter", checkLetter)
-		quoteController.POST("/daily/solveLetter", solveLetter)
-		quoteController.POST("/daily/checkQuote", checkQuote)
+		quoteController.GET("/", serveDailyQuote)
+		quoteController.POST("/checkLetter", checkLetter)
+		quoteController.POST("/solveLetter", solveLetter)
+		quoteController.POST("/checkQuote", checkQuote)
 	}
 
 	go func() {
@@ -66,7 +68,7 @@ func updateDailyQuote() {
 	defer quoteMutex.Unlock()
 
 	log.Printf("Fetching new quote at %v\n", time.Now())
-	dailyQuote = GetQuote()
+	dailyQuote = service.GetQuote()
 }
 
 func checkLetter(c *gin.Context) {
