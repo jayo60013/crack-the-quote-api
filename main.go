@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -10,7 +9,6 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 	"github.com/jasonlvhit/gocron"
 	_ "github.com/lib/pq"
 )
@@ -73,62 +71,36 @@ func updateDailyQuote() {
 
 func checkLetter(c *gin.Context) {
 	type Payload struct {
-		LetterToCheck string `json:"letterToCheck" validate:"required,max=1,lowercase"`
-		CipherLetter  string `json:"cipherLetter" validate:"required,max=1,lowercase"`
+		LetterToCheck string `json:"letterToCheck" binding:"required,max=1,lowercase"`
+		CipherLetter  string `json:"cipherLetter" binding:"required,max=1,lowercase"`
 	}
-	validate := validator.New(validator.WithRequiredStructEnabled())
-	var payload Payload
 
+	var payload Payload
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := validate.Struct(payload); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	type Response struct {
-		IsLetterCorrect string `json:"isLetterCorrect"`
-	}
-
-	answer := "incorrect"
-	if dailyQuote.CipherMapping[payload.CipherLetter] == payload.LetterToCheck {
-		answer = "correct"
-	}
-
-	response := Response{
-		IsLetterCorrect: answer,
-	}
-	c.JSON(http.StatusOK, response)
+	isCorrect := dailyQuote.CipherMapping[payload.CipherLetter] == payload.LetterToCheck
+	c.JSON(http.StatusOK, gin.H{
+		"isLetterCorrect": isCorrect,
+	})
 }
 
 func solveLetter(c *gin.Context) {
 	type Payload struct {
-		CipherLetter string `json:"cipherLetter" validate:"required,max=1,lowercase"`
+		CipherLetter string `json:"cipherLetter" binding:"required,max=1,lowercase"`
 	}
-	validate := validator.New(validator.WithRequiredStructEnabled())
-	var payload Payload
 
+	var payload Payload
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := validate.Struct(payload); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	type Response struct {
-		CorrectLetter string `json:"correctLetter"`
-	}
-
-	response := Response{
-		CorrectLetter: dailyQuote.CipherMapping[payload.CipherLetter],
-	}
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, gin.H{
+		"correctLetter": dailyQuote.CipherMapping[payload.CipherLetter],
+	})
 }
 
 func checkQuote(c *gin.Context) {
@@ -136,33 +108,21 @@ func checkQuote(c *gin.Context) {
 		CipherMapping CipherMapping `json:"cipherMap"`
 	}
 
-	validate := validator.New(validator.WithRequiredStructEnabled())
 	var payload Payload
-
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := validate.Struct(payload); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	type Response struct {
-		IsQuoteCorrect string `json:"isQuoteCorrect"`
-	}
-
-	answer := "correct"
+	answer := true
 	for k, v := range dailyQuote.CipherMapping {
 		if payload.CipherMapping[k] != v {
-			answer = "incorrect"
+			answer = false
 			break
 		}
 	}
 
-	response := Response{
-		IsQuoteCorrect: answer,
-	}
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, gin.H{
+		"isQuoteCorrect": answer,
+	})
 }
