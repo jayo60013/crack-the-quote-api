@@ -3,10 +3,11 @@
 API for Crack the quote game
 
 ## Endpoints
-- `GET /daily`: Fetches ciphered quote, author, date string and day number 
-- `POST /daily/checkLetter`: Checks if the user's guess for a given cipher letter is correct. Returns true or false
-- `POST /daily/solveLetter`: Returns the correct letter for a given cipher letter
-- `POST /daily/checkQuote`: Checks if the user's cipher map is correct. Returns true or false.
+[x] `GET /daily`: Fetches ciphered quote, author, date string and day number 
+[x] `POST /daily/letter/check`: Checks if the user's guess for a given cipher letter is correct. Returns true or false
+[x] `POST /daily/letter/solve`: Returns the correct letter for a given cipher letter
+[x] `POST /daily/quote/check`: Checks if the user's cipher map is correct. Returns true or false.
+[ ] `POST /daily/quote/solve`: TODO
 
 ### Example Request
 ```bash

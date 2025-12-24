@@ -1,0 +1,24 @@
+[package]
+name = "crack-the-quote-api"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+actix = "0.13.5"
+actix-cors = "0.7.1"
+actix-web = "4.12.1"
+anyhow = "1.0.100"
+async-trait = "0.1.89"
+chrono = "0.4.42"
+dotenvy = "0.15.7"
+env_logger = "0.11.8"
+log = "0.4.29"
+rand = "0.9.2"
+serde = "1.0.228"
+serde_json = "1.0.147"
+sqlx = { version = "0.8.6", features = ["runtime-tokio-rustls", "postgres", "macros"] }
+tokio = "1.48.0"
+validator = { version = "0.20.0", features = ["derive"] }
+
+[dev-dependencies]
+test-case = "3.3.1"
