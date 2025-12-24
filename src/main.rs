@@ -11,14 +11,17 @@ use actix_web::{
     web,
 };
 use env_logger::Env;
-use log::{debug, error, info};
+use log::{error, info};
 use tokio::sync::RwLock;
 
 use crate::{
-    models::{daily_puzzle::DailyPuzzle, daily_puzzle_response::DailyPuzzleResponse},
+    models::{
+        daily_puzzle::{DailyPuzzle, get_empty_daily_puzzle},
+        daily_puzzle_response::{DailyPuzzleResponse, get_empty_daily_puzzle_response},
+    },
     utils::{
-        constants::PORT_NUMBER, daily_puzzle_utils::get_daily_puzzle_entity,
-        db_utils::connect_pool, init_quotes_utils::initialise_quotes_table,
+        constants::PORT_NUMBER, db_utils::connect_pool, init_quotes_utils::initialise_quotes_table,
+        refresh_utils::spawn_daily_puzzle_refresh,
     },
 };
 
@@ -52,24 +55,15 @@ async fn main() -> std::io::Result<()> {
         }
     };
 
-    let daily_puzzle = match get_daily_puzzle_entity(&pool).await {
-        Ok(v) => v,
-        Err(e) => {
-            error!("Unable to init quotes table: {e}");
-            std::process::exit(1);
-        }
-    };
-    debug!("{:?}", daily_puzzle);
-    let daily_puzzle_response = DailyPuzzleResponse {
-        author: daily_puzzle.author.clone(),
-        cipher_quote: daily_puzzle.cipher_quote.clone(),
-        date_string: daily_puzzle.date_string.clone(),
-        day_number: daily_puzzle.day_number,
-    };
-
-    let daily_puzzle_cache: DailyPuzzleCache = Arc::new(RwLock::new(daily_puzzle));
+    let daily_puzzle_cache: DailyPuzzleCache = Arc::new(RwLock::new(get_empty_daily_puzzle()));
     let daily_puzzle_response_cache: DailyPuzzleResponseCache =
-        Arc::new(RwLock::new(daily_puzzle_response));
+        Arc::new(RwLock::new(get_empty_daily_puzzle_response()));
+
+    spawn_daily_puzzle_refresh(
+        pool,
+        daily_puzzle_cache.clone(),
+        daily_puzzle_response_cache.clone(),
+    );
 
     info!("Starting HTTP server on port {}", PORT_NUMBER);
     HttpServer::new(move || {

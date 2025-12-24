@@ -17,6 +17,7 @@ rand = "0.9.2"
 serde = "1.0.228"
 serde_json = "1.0.147"
 sqlx = { version = "0.8.6", features = ["runtime-tokio-rustls", "postgres", "macros"] }
+time = "0.3.44"
 tokio = "1.48.0"
 validator = { version = "0.20.0", features = ["derive"] }
 
