@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use chrono::{Local, NaiveDate};
+use log::info;
 use rand::seq::SliceRandom;
 use sqlx::PgPool;
 
@@ -40,10 +41,12 @@ async fn get_daily_quote(pool: &PgPool) -> anyhow::Result<Quote> {
         .expect("Invalid start_date format");
     let today = Local::now().date_naive();
 
+    info!("Fetching count from quotes table");
     let quotes_count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM quotes")
         .fetch_one(pool)
         .await?;
     let id = (today - start_date).num_days() % quotes_count;
+    info!("id={}", id);
 
     let quote = sqlx::query_as::<_, Quote>("SELECT quote, author FROM quotes WHERE id=$1")
         .bind(id)
