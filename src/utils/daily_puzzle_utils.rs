@@ -45,7 +45,10 @@ async fn get_daily_quote(pool: &PgPool) -> anyhow::Result<Quote> {
     let quotes_count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM quotes")
         .fetch_one(pool)
         .await?;
-    let id = (today - start_date).num_days() % quotes_count;
+
+    // Id is the difference in from start_date & today + 1
+    let days = (today - start_date).num_days();
+    let id = ((days + 1).rem_euclid(quotes_count)) as i64;
     info!("id={}", id);
 
     let quote = sqlx::query_as::<_, Quote>("SELECT quote, author FROM quotes WHERE id=$1")
