@@ -1,6 +1,7 @@
 use serde::Serialize;
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct DailyPuzzleResponse {
     pub author: String,
     pub cipher_quote: String,
